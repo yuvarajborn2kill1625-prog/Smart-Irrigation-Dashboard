@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Irrigation Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"
+            defer></script>
+</head>
+
+<body>
+<div class="app-shell">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">🌱</div>
+            <div>
+                <h2>AgriSmart</h2>
+                <p>IRRIGATION SYSTEM</p>
+            </div>
+        </div>
+
+        <p class="sidebar-label">MAIN MENU</p>
+
+        <nav>
+            <a class="nav-link active" href="#dashboard">▦ Dashboard</a>
+            <a class="nav-link" href="#sensors">◉ Soil Sensors</a>
+            <a class="nav-link" href="#pumpControl">⚙ Pump Control</a>
+            <a class="nav-link" href="#analytics">▥ Analytics</a>
+            <a class="nav-link" href="#alerts">⚠ Alerts</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <span class="status-dot" id="sidebarDot"></span>
+            <div>
+                <strong id="sidebarConnection">Connecting...</strong>
+                <small>ESP32 connection</small>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Dashboard -->
+    <main class="main-content" id="dashboard">
+
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">SMART AGRICULTURE</p>
+                <h1>Smart Irrigation Dashboard</h1>
+                <p class="subtitle">
+                    Monitor soil conditions and manage irrigation.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+                <div class="topbar-status">
+                    <span class="status-dot" id="connectionDot"></span>
+                    <span id="connectionText">
+                        Connecting to ESP32...
+                    </span>
+                </div>
+
+                <a href="/download-excel" class="download-excel-btn">
+                    <span>↓</span> Download Sensor Data
+                </a>
+            </div>
+        </header>
+
+        <!-- System Overview -->
+        <section class="section-block">
+            <div class="section-heading">
+                <div>
+                    <h2>System Overview</h2>
+                    <p>Current readings from your irrigation system.</p>
+                </div>
+
+                <span class="pill" id="modeBadge">AUTO MODE</span>
+            </div>
+
+            <div class="overview-grid">
+
+                <article class="metric-card">
+                    <div class="metric-top">
+                        <span>Soil Sensor 1</span>
+                        <span>🌿</span>
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="soil1Value">--</span><small>%</small>
+                    </div>
+
+                    <div class="progress-track">
+                        <div class="progress-fill" id="soil1Bar"></div>
+                    </div>
+
+                    <p class="metric-foot" id="soil1Label">
+                        Waiting for sensor
+                    </p>
+
+                    <small class="raw-value">
+                        Raw: <span id="soil1Raw">--</span>
+                    </small>
+                </article>
+
+                <article class="metric-card">
+                    <div class="metric-top">
+                        <span>Soil Sensor 2</span>
+                        <span>🌱</span>
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="soil2Value">--</span><small>%</small>
+                    </div>
+
+                    <div class="progress-track">
+                        <div class="progress-fill" id="soil2Bar"></div>
+                    </div>
+
+                    <p class="metric-foot" id="soil2Label">
+                        Waiting for sensor
+                    </p>
+
+                    <small class="raw-value">
+                        Raw: <span id="soil2Raw">--</span>
+                    </small>
+                </article>
+
+                <article class="metric-card">
+                    <div class="metric-top">
+                        <span>Water Used</span>
+                        <span>💧</span>
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="waterValue">0.00</span><small>L</small>
+                    </div>
+
+                    <p class="metric-foot">
+                        Estimated total water flow
+                    </p>
+
+                    <small class="raw-value">
+                        Pulses: <span id="flowPulses">0</span>
+                    </small>
+                </article>
+
+                <article class="metric-card">
+                    <div class="metric-top">
+                        <span>Water Pump</span>
+                        <span>⚡</span>
+                    </div>
+
+                    <div class="metric-value pump-value" id="pumpValue">
+                        OFF
+                    </div>
+
+                    <p class="metric-foot" id="pumpDescription">
+                        Pump is stopped
+                    </p>
+
+                    <span class="pill neutral" id="pumpBadge">
+                        STANDBY
+                    </span>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Sensor Monitoring -->
+        <section class="section-block" id="sensors">
+            <div class="section-heading">
+                <div>
+                    <h2>Sensor Monitoring</h2>
+                    <p>Live soil and rain sensor readings.</p>
+                </div>
+            </div>
+
+            <div class="detail-grid">
+
+                <article class="panel">
+                    <h3>Soil Moisture</h3>
+
+                    <div class="soil-detail">
+                        <div>
+                            <span class="mini-label">SENSOR 1</span>
+                            <strong id="soil1Detail">--%</strong>
+                            <p id="soil1Condition">Waiting for data</p>
+                        </div>
+
+                        <div>
+                            <span class="mini-label">SENSOR 2</span>
+                            <strong id="soil2Detail">--%</strong>
+                            <p id="soil2Condition">Waiting for data</p>
+                        </div>
+                    </div>
+
+                    <p class="helper-text">
+                        0% = dry calibration point ·
+                        100% = wet calibration point
+                    </p>
+                </article>
+
+                <article class="panel">
+                    <h3>Rain Detection</h3>
+
+                    <div class="rain-display">
+                        <span class="rain-icon" id="rainIcon">☁️</span>
+
+                        <div>
+                            <strong id="rainStatus">Unknown</strong>
+                            <p id="rainDescription">
+                                Waiting for sensor data
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <span>Raw reading</span>
+                        <strong id="rainRaw">--</strong>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>Device Information</h3>
+
+                    <div class="info-row">
+                        <span>ESP32</span>
+                        <strong id="deviceStatus">Offline</strong>
+                    </div>
+
+                    <div class="info-row">
+                        <span>Last update</span>
+                        <strong id="lastUpdate">Never</strong>
+                    </div>
+
+                    <div class="info-row">
+                        <span>Operating mode</span>
+                        <strong id="currentMode">AUTO</strong>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Pump Control -->
+        <section class="section-block" id="pumpControl">
+            <div class="section-heading">
+                <div>
+                    <h2>Pump Control</h2>
+                    <p>Choose automatic irrigation or manual control.</p>
+                </div>
+            </div>
+
+            <article class="panel control-panel">
+
+                <div class="control-description">
+                    <div>
+                        <span class="mini-label">CURRENT PUMP STATE</span>
+                        <h3 id="controlPumpStatus">Pump OFF</h3>
+                        <p id="controlDescription">
+                            Select an operating mode.
+                        </p>
+                    </div>
+
+                    <span class="pump-symbol">⚡</span>
+                </div>
+
+                <div class="control-group">
+                    <h4>Operating Mode</h4>
+
+                    <div class="button-row">
+                        <button type="button"
+                                class="control-button auto-button"
+                                id="autoModeBtn">
+                            AUTO MODE
+                        </button>
+
+                        <button type="button"
+                                class="control-button"
+                                id="manualModeBtn">
+                            MANUAL MODE
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h4>Manual Pump Switch</h4>
+
+                    <div class="button-row">
+                        <button type="button"
+                                class="control-button on-button"
+                                id="pumpOnBtn">
+                            ⏻ PUMP ON
+                        </button>
+
+                        <button type="button"
+                                class="control-button off-button"
+                                id="pumpOffBtn">
+                            ⏻ PUMP OFF
+                        </button>
+                    </div>
+
+                    <p class="helper-text">
+                        Manual ON/OFF works in MANUAL mode.
+                        Rain and hardware safety faults can stop the pump.
+                    </p>
+                </div>
+
+                <p id="controlMessage"
+                   class="control-message"
+                   role="status">
+                    Waiting for connection...
+                </p>
+
+            </article>
+        </section>
+
+        <!-- Analytics -->
+        <section class="section-block" id="analytics">
+            <div class="section-heading">
+                <div>
+                    <h2>Live Analytics</h2>
+                    <p>Recent soil moisture readings.</p>
+                </div>
+            </div>
+
+            <article class="panel chart-panel">
+                <canvas id="moistureChart"></canvas>
+            </article>
+        </section>
+
+        <!-- Alerts -->
+        <section class="section-block" id="alerts">
+            <div class="section-heading">
+                <div>
+                    <h2>System Alerts</h2>
+                    <p>Warnings from the irrigation system.</p>
+                </div>
+            </div>
+
+            <article class="panel">
+                <div id="alertsList" class="alerts-list">
+                    <p class="empty-state">
+                        Waiting for ESP32 data...
+                    </p>
+                </div>
+            </article>
+        </section>
+
+        <footer>
+            Smart Irrigation System · ESP32 + Flask
+        </footer>
+
+    </main>
+</div>
+</body>
+</html>
